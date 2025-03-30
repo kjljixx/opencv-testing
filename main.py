@@ -13,8 +13,10 @@ def runPipeline(original_image, llrobot):
     filtered_image = cv2.bitwise_and(filtered_image, filtered_image, mask = cv2.adaptiveThreshold(cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY),255,cv2.ADAPTIVE_THRESH_MEAN_C,\
             cv2.THRESH_BINARY,35,0))
     filtered_image = cv2.bitwise_and(image, image, mask = filtered_image)
-    # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (8, 8))
-    # filtered_image = cv2.erode(filtered_image, kernel, iterations=1)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    filtered_image = cv2.dilate(filtered_image, kernel)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    filtered_image = cv2.erode(filtered_image, kernel)
     edges = cv2.Canny(image=filtered_image, threshold1=100, threshold2=200)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
     edges = cv2.dilate(edges, kernel, iterations=1)
@@ -22,15 +24,16 @@ def runPipeline(original_image, llrobot):
     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 
+    sample_contours = []
     if len(contours) > 0:
         largestContour = max(contours, key=cv2.contourArea)
         x,y,w,h = cv2.boundingRect(largestContour)
         llpython = [1,x,y,w,h,9,8,7]
+        sample_contours.append(largestContour)
 
-    sample_contours = []
-    for i in contours:
-        if(cv2.contourArea(i) > 1000):
-            sample_contours.append(i)
+    # for i in contours:
+    #     if(cv2.contourArea(i) > 1000):
+    #         sample_contours.append(i)
 
     image = cv2.cvtColor(image, cv2.COLOR_HLS2BGR)
     cv2.drawContours(image, sample_contours, -1, 255, 2)
