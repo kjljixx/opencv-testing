@@ -7,8 +7,10 @@ def runPipeline(original_image, llrobot):
 
     image = cv2.cvtColor(original_image, cv2.COLOR_BGR2HLS)
 
+    #Blur to reduce noisiness
+    filtered_image = cv2.GaussianBlur(image, (29, 29), sigmaX=0, sigmaY=0)
     #Filter out everything that's not the same color as the sample
-    mask = cv2.inRange(image, np.array([10, 0, 100]),
+    mask = cv2.inRange(filtered_image, np.array([10, 0, 100]),
                                         np.array([30, 90, 255]))
     filtered_image = cv2.bitwise_and(image, image, mask = mask)
     
