@@ -15,7 +15,7 @@ def runPipeline(original_image, llrobot):
     
     original_edges = cv2.Canny(image=cv2.split(filtered_image)[1], threshold1=20, threshold2=40)
     
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
     original_edges = cv2.dilate(original_edges, kernel)
 
     nb_blobs, im_with_separated_blobs, stats, _ = cv2.connectedComponentsWithStats(original_edges)
