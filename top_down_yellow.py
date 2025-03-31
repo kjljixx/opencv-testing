@@ -47,6 +47,7 @@ def runPipeline(original_image, llrobot):
 
     #Filter out all contours which are extraneous
     sample_contours = []
+    boxed_sample_contours = []
     for i in contours:
         if(cv2.contourArea(i) > min_area):
             rect = cv2.minAreaRect(i)
