@@ -24,7 +24,7 @@ def runPipeline(original_image, llrobot):
         #Detect large brightness changes between pixels; this likely represents the edge/border of a sample
         original_edges = cv2.Canny(image=cv2.split(filtered_image)[1], threshold1=threshold, threshold2=threshold*2)
         edge_sum = np.sum(original_edges)
-        threshold += 1
+        threshold += 5
         if edge_sum / mask_sum < 0.12:
             break
     
