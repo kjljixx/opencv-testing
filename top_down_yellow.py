@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 
 def runPipeline(original_image, llrobot):
-    largestContour = np.array([[]])
-    llpython = [0,0,0,0,0,0,0,0]
+    best_contour = np.array([[]])
+    llpython = []
 
     image = cv2.cvtColor(original_image, cv2.COLOR_BGR2HLS)
 
@@ -45,24 +45,37 @@ def runPipeline(original_image, llrobot):
     min_ratio = 1.5
     max_ratio = 3.0
 
+    #Filter out all contours which are extraneous
     sample_contours = []
     for i in contours:
         if(cv2.contourArea(i) > min_area):
-            w_h_rat = cv2.minAreaRect(i)[1][0]/cv2.minAreaRect(i)[1][1]
+            rect = cv2.minAreaRect(i)
+            w_h_rat = rect[1][0]/rect[1][1]
             if((w_h_rat > min_ratio and w_h_rat < max_ratio) or (w_h_rat > 1/max_ratio and w_h_rat < 1/min_ratio)):
                 sample_contours.append(i)
-    boxed_sample_contours = []
-    for i in sample_contours:
-        rect = cv2.minAreaRect(i)
-        box = cv2.boxPoints(rect)
-        box = np.int0(box)
-        cv2.drawContours(image,[box],0,(0,255,255),2)
-    if len(sample_contours) > 0:
-        largestContour = max(sample_contours, key=cv2.contourArea)
-        x,y,w,h = cv2.boundingRect(largestContour)
-        llpython = [1,x,y,w,h,9,8,7]
+                boxed_sample_contours.append(rect)
 
+                box = cv2.boxPoints(rect)
+                box = np.int0(box)
+                cv2.drawContours(image,[box],0,(0,255,255),2)
+    
+    #Find closest contour & its angle
+    if len(sample_contours) > 0:
+        closest_rect_idx, closest_rect = min(enumerate(boxed_sample_contours),
+            key=lambda rect: abs(rect[1][0][0]-640/2)+abs(rect[1][0][1]-480/2))
+        best_contour = sample_contours[closest_rect_idx]
+
+        angle = None
+        w, h = closest_rect[1]
+        if h > w:
+            angle = closest_rect[2]
+        else:
+            angle = closest_rect[2] - 90
+        image = cv2.putText(image, str(angle)[:5]+" deg", (int(closest_rect[0][0] - 10), int(closest_rect[0][1] - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100, 255, 0), 2)
+        llpython = [angle, 640/2 - closest_rect[0][0], 480/2 - closest_rect[0][1]]
+
+    #Convert back to BGR
     edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
     image = cv2.cvtColor(image, cv2.COLOR_HLS2BGR) 
 
-    return largestContour, image, llpython
+    return best_contour, image, llpython
