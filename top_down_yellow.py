@@ -10,16 +10,28 @@ def runPipeline(original_image, llrobot):
     #Blur to reduce noisiness
     filtered_image = cv2.GaussianBlur(image, (29, 29), sigmaX=0, sigmaY=0)
     #Filter out everything that's not the same color as the sample
-    mask = cv2.inRange(filtered_image, np.array([10, 40, 100]),
+    mask = cv2.inRange(filtered_image, np.array([10, 0, 100]),
                                         np.array([30, 255, 255]))
     filtered_image = cv2.bitwise_and(image, image, mask = mask)
     
-    #Detect large brightness changes between pixels; this likely represents the edge/border of a sample
-    original_edges = cv2.Canny(image=cv2.split(filtered_image)[1], threshold1=30, threshold2=60)
+    mask_sum = np.sum(mask)
+    edge_sum = mask_sum
+    threshold = 20
+    original_edges = None
+    #Account for different lighting conditions requiring different thresholds for edge detection;
+    #If a lot of the area we're looking at is detected as edges, then our threshold is probably too low
+    while True:
+        #Detect large brightness changes between pixels; this likely represents the edge/border of a sample
+        original_edges = cv2.Canny(image=cv2.split(filtered_image)[1], threshold1=threshold, threshold2=threshold*2)
+        edge_sum = np.sum(original_edges)
+        threshold += 1
+        if edge_sum / mask_sum < 0.12:
+            break
     
     #Make sure there aren't any breaks/gaps in the middle of an edge
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
-    original_edges = cv2.dilate(original_edges, kernel)
+    if(edge_sum != 0):
+        original_edges = cv2.dilate(original_edges, kernel)
 
     #Use white to represent areas where we think there is a sample, black now means the edge/border of a sample or no sample
     edges = cv2.bitwise_not(original_edges)
