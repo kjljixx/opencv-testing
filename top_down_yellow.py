@@ -10,12 +10,12 @@ def runPipeline(original_image, llrobot):
     #Blur to reduce noisiness
     filtered_image = cv2.GaussianBlur(image, (29, 29), sigmaX=0, sigmaY=0)
     #Filter out everything that's not the same color as the sample
-    mask = cv2.inRange(filtered_image, np.array([10, 0, 100]),
-                                        np.array([30, 90, 255]))
+    mask = cv2.inRange(filtered_image, np.array([10, 40, 100]),
+                                        np.array([30, 255, 255]))
     filtered_image = cv2.bitwise_and(image, image, mask = mask)
     
     #Detect large brightness changes between pixels; this likely represents the edge/border of a sample
-    original_edges = cv2.Canny(image=cv2.split(filtered_image)[1], threshold1=20, threshold2=40)
+    original_edges = cv2.Canny(image=cv2.split(filtered_image)[1], threshold1=30, threshold2=60)
     
     #Make sure there aren't any breaks/gaps in the middle of an edge
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
