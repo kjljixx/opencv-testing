@@ -20,7 +20,7 @@ def runPipeline(original_image, llrobot):
     original_edges = None
     #Account for different lighting conditions requiring different thresholds for edge detection;
     #If a lot of the area we're looking at is detected as edges, then our threshold is probably too low
-    while True:
+    while threshold < 40:
         #Detect large brightness changes between pixels; this likely represents the edge/border of a sample
         original_edges = cv2.Canny(image=cv2.split(filtered_image)[1], threshold1=threshold, threshold2=threshold*2)
         edge_sum = np.sum(original_edges)
