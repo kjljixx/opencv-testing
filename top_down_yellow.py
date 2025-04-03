@@ -5,31 +5,31 @@ def runPipeline(original_image, llrobot):
     best_contour = np.array([[]])
     llpython = []
 
-    image = cv2.cvtColor(original_image, cv2.COLOR_BGR2HLS)
+    image = cv2.cvtColor(original_image, cv2.COLOR_BGR2YCrCb)
 
     #Blur to reduce noisiness
-    filtered_image = cv2.GaussianBlur(image, (29, 29), sigmaX=0, sigmaY=0)
+    filtered_image = cv2.GaussianBlur(image, (7, 7), sigmaX=0, sigmaY=0)
     #Filter out everything that's not the same color as the sample
-    mask = cv2.inRange(filtered_image, np.array([10, 0, 100]),
-                                        np.array([30, 255, 255]))
-    filtered_image = cv2.bitwise_and(image, image, mask = mask)
+    mask = cv2.inRange(filtered_image, np.array([27, 130, 70]),
+                                        np.array([150, 170, 118]))
+    filtered_image = cv2.bitwise_and(filtered_image, filtered_image, mask = mask)
     
     mask_sum = np.sum(mask)
     edge_sum = mask_sum
-    threshold = 20
+    threshold = 5
     original_edges = None
     #Account for different lighting conditions requiring different thresholds for edge detection;
     #If a lot of the area we're looking at is detected as edges, then our threshold is probably too low
     while threshold < 40:
         #Detect large brightness changes between pixels; this likely represents the edge/border of a sample
-        original_edges = cv2.Canny(image=cv2.split(filtered_image)[1], threshold1=threshold, threshold2=threshold*2)
+        original_edges = cv2.Canny(image=cv2.split(filtered_image)[0], threshold1=threshold, threshold2=threshold*2)
         edge_sum = np.sum(original_edges)
-        threshold += 5
+        threshold += 2
         if edge_sum / mask_sum < 0.12:
             break
     
     #Make sure there aren't any breaks/gaps in the middle of an edge
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (4, 4))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     if(edge_sum != 0):
         original_edges = cv2.dilate(original_edges, kernel)
 
@@ -77,6 +77,14 @@ def runPipeline(original_image, llrobot):
 
     #Convert back to BGR
     edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
-    image = cv2.cvtColor(image, cv2.COLOR_HLS2BGR) 
+    print(image[240][320])
+    image = cv2.cvtColor(image, cv2.COLOR_YCrCb2BGR)
 
-    return best_contour, image, llpython
+    adapt = cv2.adaptiveThreshold(cv2.split(filtered_image)[0],255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY,11,2)
+    adapt = cv2.bitwise_and(adapt, mask)
+    adapt = cv2.cvtColor(adapt, cv2.COLOR_GRAY2BGR)
+    filtered_darkness = cv2.cvtColor(cv2.split(filtered_image)[0], cv2.COLOR_GRAY2BGR)
+    filtered_image = cv2.cvtColor(filtered_image, cv2.COLOR_YCrCb2BGR)
+
+    return best_contour, edges, llpython
