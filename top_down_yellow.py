@@ -25,7 +25,7 @@ def runPipeline(original_image, llrobot):
         original_edges = cv2.Canny(image=cv2.split(filtered_image)[0], threshold1=threshold, threshold2=threshold*2)
         edge_sum = np.sum(original_edges)
         threshold += 2
-        if edge_sum / mask_sum < 0.12:
+        if edge_sum / mask_sum < 0.13:
             break
     
     #Make sure there aren't any breaks/gaps in the middle of an edge
