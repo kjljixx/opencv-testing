@@ -43,7 +43,7 @@ def runPipeline(original_image, llrobot):
     min_area = 5000
     #Samples are 3.5 x 1.5 inches
     min_ratio = 1.5
-    max_ratio = 3.0
+    max_ratio = 6.0
 
     #Filter out all contours which are extraneous
     sample_contours = []
